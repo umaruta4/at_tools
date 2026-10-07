@@ -6,7 +6,7 @@ frappe.ui.form.on("AT Tools Settings", {
 				freeze: true,
 				callback(r) {
 					frappe.msgprint(
-						__("Generated {0}. Restart bench agar perubahan hooks aktif.", [r.message])
+						__("Generated {0}. Restart bench for the hook changes to take effect.", [r.message])
 					);
 				},
 			});

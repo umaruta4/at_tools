@@ -25,10 +25,10 @@ frappe.ui.form.on("Employee", {
 
 		if (frm.doc.user_permission_items && frm.doc.user_permission_items.length) {
 			frappe.confirm(
-				__("Ganti baris User Permissions dengan isi template?"),
+				__("Replace the User Permissions rows with the template's content?"),
 				copy_items,
 				() => {
-					// Batal: kembalikan template sebelumnya tanpa memicu handler ini lagi
+					// Cancelled: restore the previous template without re-triggering this handler
 					frm.doc.user_permission_template = frm._prev_user_permission_template;
 					frm.refresh_field("user_permission_template");
 				}

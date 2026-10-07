@@ -32,6 +32,6 @@ Pre-commit is configured to use the following tools for checking and formatting 
 
 mit
 
-### Dokumentasi Pengembangan
+### Development Documentation
 
-Lihat [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) untuk struktur modul, registry tool, hooks, dan penggunaan `is_tool_enabled`.
+See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the module structure, tool registry, hooks, and how to use `is_tool_enabled`.

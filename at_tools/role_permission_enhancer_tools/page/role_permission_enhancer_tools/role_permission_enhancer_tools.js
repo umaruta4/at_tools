@@ -26,7 +26,7 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 	function load_permissions() {
 		const doctype = doctype_field.get_value();
 		if (!doctype) {
-			$body.html(`<p class="text-muted">${__("Pilih DocType untuk melihat permission.")}</p>`);
+			$body.html(`<p class="text-muted">${__("Select a DocType to view its permissions.")}</p>`);
 			return;
 		}
 
@@ -48,17 +48,17 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 					<td>${frappe.utils.escape_html(row.role)}</td>
 					<td class="text-center">${row.permlevel}</td>
 					${cells}
-					<td><button class="btn btn-xs btn-default" data-role="${frappe.utils.escape_html(row.role)}">${__("Atur")}</button></td>
+					<td><button class="btn btn-xs btn-default" data-role="${frappe.utils.escape_html(row.role)}">${__("Set")}</button></td>
 				</tr>`;
 			})
 			.join("");
 
 		$body.html(`
-			<div class="mb-2 text-muted">${__("Permission efektif untuk {0}", [doctype])}</div>
+			<div class="mb-2 text-muted">${__("Effective permissions for {0}", [doctype])}</div>
 			<div class="table-responsive">
 				<table class="table table-bordered">
 					<thead><tr><th>${__("Role")}</th><th class="text-center">${__("Level")}</th>${head}<th></th></tr></thead>
-					<tbody>${body || `<tr><td colspan="${ptypes.length + 3}" class="text-muted">${__("Belum ada permission")}</td></tr>`}</tbody>
+					<tbody>${body || `<tr><td colspan="${ptypes.length + 3}" class="text-muted">${__("No permissions yet")}</td></tr>`}</tbody>
 				</table>
 			</div>
 		`);
@@ -88,10 +88,10 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 	function open_set_dialog(doctype, role, current) {
 		const selected = ptypes.filter((p) => current && current[p]);
 		const dialog = new frappe.ui.Dialog({
-			title: __("Atur Permission: {0} / {1}", [role, doctype]),
+			title: __("Set Permissions: {0} / {1}", [role, doctype]),
 			size: "large",
 			fields: [{ fieldtype: "HTML", fieldname: "grid" }],
-			primary_action_label: __("Simpan"),
+			primary_action_label: __("Save"),
 			primary_action(values) {
 				const permissions = {};
 				read_checked(dialog.$wrapper).forEach((p) => (permissions[p] = 1));
@@ -101,7 +101,7 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 					freeze: true,
 					callback() {
 						dialog.hide();
-						frappe.show_alert({ message: __("Permission disimpan"), indicator: "green" });
+						frappe.show_alert({ message: __("Permissions saved"), indicator: "green" });
 						load_permissions();
 					},
 				});
@@ -115,7 +115,7 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 		const doctype = doctype_field.get_value();
 		const role = role_field.get_value();
 		if (!doctype || !role) {
-			frappe.msgprint(__("Pilih Role dan DocType dulu."));
+			frappe.msgprint(__("Select a Role and a DocType first."));
 			return;
 		}
 
@@ -125,7 +125,7 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 			callback(r) {
 				const linked = r.message || [];
 				if (!linked.length) {
-					frappe.msgprint(__("Tidak ada DocType terkait."));
+					frappe.msgprint(__("No related DocTypes."));
 					return;
 				}
 
@@ -142,10 +142,10 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 					.join("");
 
 				const dialog = new frappe.ui.Dialog({
-					title: __("DocType Terkait untuk {0}", [doctype]),
+					title: __("Related DocTypes for {0}", [doctype]),
 					size: "extra-large",
 					fields: [{ fieldtype: "HTML", fieldname: "list" }],
-					primary_action_label: __("Terapkan ke {0}", [role]),
+					primary_action_label: __("Apply to {0}", [role]),
 					primary_action() {
 						const items = [];
 						dialog.$wrapper.find(".linked-item").each((_, el) => {
@@ -159,7 +159,7 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 						});
 
 						if (!items.length) {
-							frappe.msgprint(__("Tidak ada yang dipilih."));
+							frappe.msgprint(__("Nothing selected."));
 							return;
 						}
 
@@ -169,7 +169,7 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 							freeze: true,
 							callback(res) {
 								dialog.hide();
-								frappe.msgprint(__("Permission ditambahkan ke {0} DocType.", [res.message]));
+								frappe.msgprint(__("Permissions added to {0} DocTypes.", [res.message]));
 								load_permissions();
 							},
 						});

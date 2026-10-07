@@ -4,9 +4,9 @@ import os
 
 import frappe
 
-# Registry semua tool.
-# install: fungsi yang dipanggil saat tool diaktifkan di site.
-# hooks: modul yang punya variabel HOOKS (doc_events, doctype_js, dll), dikumpulkan ke file data generated hooks.
+# Registry of all tools.
+# install: function called when the tool is activated on a site.
+# hooks: module with a HOOKS variable (doc_events, doctype_js, etc.), collected into the generated hooks data file.
 TOOLS = {
 	"User Permission Tools": {
 		"install": "at_tools.user_permission_tools.install.install",
@@ -17,13 +17,13 @@ TOOLS = {
 
 
 def get_generated_hooks_path():
-	"""Lokasi file hasil Generate Hooks.
+	"""Location of the Generate Hooks output file.
 
-	Sengaja ditaruh di sites/.at_tools/, BUKAN di folder package app, supaya:
-	- tidak ikut ke-commit ke repo at_tools (sites/ di luar repo app sama sekali, jadi tidak
-	  butuh .gitignore apa pun di sini).
-	- persisten lintas deploy, karena sites/ adalah direktori data bench yang dipertahankan
-	  saat apps/ di-replace oleh git pull/deploy.
+	Deliberately placed under sites/.at_tools/, NOT inside the app package folder, so that:
+	- it never gets committed to the at_tools repo (sites/ is entirely outside this app's repo,
+	  so no .gitignore entry is needed here).
+	- it persists across deploys, since sites/ is the bench data directory that is kept intact
+	  while apps/ gets replaced by git pull/deploy.
 	"""
 	return os.path.join(frappe.utils.get_bench_path(), "sites", ".at_tools", "generated_hooks.json")
 
@@ -38,7 +38,7 @@ def _as_list(value):
 
 
 def _merge(target, source):
-	"""Gabungkan dict hooks secara rekursif. Nilai yang bentrok digabung jadi list tanpa duplikat."""
+	"""Recursively merge hooks dicts. Colliding values are merged into a deduplicated list."""
 	for key, value in source.items():
 		if isinstance(value, dict):
 			_merge(target.setdefault(key, {}), value)
@@ -50,7 +50,7 @@ def _merge(target, source):
 
 
 def collect_hooks():
-	"""Gabungkan HOOKS dari tool yang aktif di site ini saja."""
+	"""Merge HOOKS only from tools that are enabled on this site."""
 	merged = {}
 	for tool, config in TOOLS.items():
 		if not config.get("hooks") or not is_tool_enabled(tool):
@@ -62,7 +62,7 @@ def collect_hooks():
 
 
 def generate_hooks():
-	"""Tulis file data generated hooks (JSON). Dipanggil dari tombol di AT Tools Settings."""
+	"""Write the generated hooks data file (JSON). Called from the button in AT Tools Settings."""
 	path = get_generated_hooks_path()
 	os.makedirs(os.path.dirname(path), exist_ok=True)
 	with open(path, "w") as f:
@@ -72,11 +72,11 @@ def generate_hooks():
 
 
 def load_generated_hooks():
-	"""Baca file data generated hooks. Dipanggil dari at_tools/hooks.py saat startup."""
+	"""Read the generated hooks data file. Called from at_tools/hooks.py at startup."""
 	path = get_generated_hooks_path()
 	try:
 		with open(path) as f:
 			return json.load(f)
 	except (OSError, ValueError):
-		# Belum pernah di-generate, atau file rusak.
+		# Never generated yet, or the file is corrupted.
 		return {}

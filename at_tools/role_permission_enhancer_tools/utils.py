@@ -29,7 +29,7 @@ PTYPES = [
 def _check_access():
 	frappe.only_for("System Manager")
 	if not is_tool_enabled(TOOL):
-		frappe.throw(_("{0} belum diaktifkan di AT Tools Settings").format(TOOL))
+		frappe.throw(_("{0} is not enabled in AT Tools Settings").format(TOOL))
 
 
 @frappe.whitelist()
@@ -40,7 +40,7 @@ def get_ptypes():
 
 @frappe.whitelist()
 def get_role_permissions(doctype):
-	"""Permission efektif per role untuk satu DocType (standar + custom)."""
+	"""Effective permissions per role for one DocType (standard + custom)."""
 	_check_access()
 	return [
 		{
@@ -54,7 +54,7 @@ def get_role_permissions(doctype):
 
 @frappe.whitelist()
 def get_linked_doctypes(doctype):
-	"""DocType yang dibutuhkan untuk mengakses doctype ini: Link langsung + Link di dalam child table."""
+	"""DocTypes needed to access this doctype: direct Links + Links inside child tables."""
 	_check_access()
 	result = {}
 
@@ -76,14 +76,14 @@ def get_linked_doctypes(doctype):
 
 @frappe.whitelist()
 def set_role_permissions(role, doctype, permissions):
-	"""Atur permission role pada doctype secara penuh. Ptype yang tidak dikirim dianggap 0."""
+	"""Fully set a role's permissions on a doctype. Any ptype not sent is treated as 0."""
 	_check_access()
 	_apply(role, doctype, frappe.parse_json(permissions), grant_only=False)
 
 
 @frappe.whitelist()
 def grant_linked_permissions(role, items):
-	"""Tambahkan permission ke beberapa doctype terkait. Hanya menambah, tidak pernah mencabut yang sudah ada."""
+	"""Grant permissions on several related doctypes. Only ever adds, never revokes existing ones."""
 	_check_access()
 	items = frappe.parse_json(items)
 	for item in items:
@@ -93,9 +93,9 @@ def grant_linked_permissions(role, items):
 
 def _apply(role, doctype, values, grant_only):
 	if not frappe.db.exists("Role", role):
-		frappe.throw(_("Role {0} tidak ditemukan").format(role))
+		frappe.throw(_("Role {0} not found").format(role))
 	if not frappe.db.exists("DocType", doctype):
-		frappe.throw(_("DocType {0} tidak ditemukan").format(doctype))
+		frappe.throw(_("DocType {0} not found").format(doctype))
 
 	values = {ptype: 1 if values.get(ptype) else 0 for ptype in PTYPES if ptype in values or not grant_only}
 	if grant_only:
@@ -103,7 +103,7 @@ def _apply(role, doctype, values, grant_only):
 		if not values:
 			return
 
-	# Sama seperti Role Permission Manager: salin DocPerm standar ke Custom DocPerm dulu
+	# Same as Role Permission Manager: copy the standard DocPerm to Custom DocPerm first
 	setup_custom_perms(doctype)
 	filters = {"parent": doctype, "role": role, "permlevel": 0, "if_owner": 0}
 	if not frappe.db.exists("Custom DocPerm", filters):

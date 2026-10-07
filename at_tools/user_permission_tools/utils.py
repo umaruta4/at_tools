@@ -16,14 +16,14 @@ TEMPLATE_ITEM_FIELDS = [
 
 @frappe.whitelist()
 def get_template_items(template):
-	"""Dipakai JS Employee untuk menyalin baris template ke tabel Employee."""
+	"""Used by the Employee JS to copy template rows into the Employee table."""
 	frappe.has_permission("User Permission Template", "read", throw=True)
 	doc = frappe.get_doc("User Permission Template", template)
 	return [{field: row.get(field) for field in TEMPLATE_ITEM_FIELDS} for row in doc.items]
 
 
 def sync_employee_user_permissions(doc):
-	"""Menyamakan User Permission user dengan tabel User Permissions milik Employee."""
+	"""Reconcile the user's User Permission records with the Employee's User Permissions table."""
 	if not doc.user_id:
 		return
 
@@ -41,7 +41,7 @@ def sync_employee_user_permissions(doc):
 		else []
 	)
 
-	# Simpan hanya UP yang dibuat tool ini. Yang cocok dengan desired dipertahankan, sisanya dihapus.
+	# Only keep UPs this tool created. Ones matching desired are kept, the rest are deleted.
 	kept = {}
 	for row in existing:
 		key = permission_key(row.allow, row.for_value, row.applicable_for, row.apply_to_all_doctypes)
@@ -50,7 +50,7 @@ def sync_employee_user_permissions(doc):
 		else:
 			frappe.delete_doc("User Permission", row.name, ignore_permissions=True, force=True)
 
-	# UP yang sudah ada dari sumber lain (mis. ERPNext atau manual) tidak dibuat ulang dan tidak dikelola tool
+	# UPs that already exist from other sources (e.g. ERPNext or manual) are never recreated or managed by this tool
 	current_user_permissions = frappe.get_all(
 		"User Permission",
 		filters={"user": doc.user_id},
@@ -71,7 +71,7 @@ def sync_employee_user_permissions(doc):
 		)
 		kept[key] = up.name
 
-	# update_modified=False supaya save berikutnya dari form tidak kena TimestampMismatchError
+	# update_modified=False so the next save from the form doesn't hit a TimestampMismatchError
 	applied_value = json.dumps(sorted(kept.values()))
 	doc.user_permission_applied = applied_value
 	frappe.db.set_value("Employee", doc.name, "user_permission_applied", applied_value, update_modified=False)

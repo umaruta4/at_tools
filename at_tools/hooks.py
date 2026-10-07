@@ -146,8 +146,8 @@ app_license = "mit"
 # 	}
 # }
 
-# Hooks per modul dikumpulkan ke sites/.at_tools/generated_hooks.json (AT Tools Settings > Generate Hooks).
-# File ini hanya membaca hasilnya, jangan tambahkan hook di sini.
+# Per-module hooks are collected into sites/.at_tools/generated_hooks.json (AT Tools Settings > Generate Hooks).
+# This file only reads the result, don't add hooks here directly.
 from at_tools.tools import load_generated_hooks
 
 HOOKS = load_generated_hooks()

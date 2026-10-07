@@ -11,12 +11,12 @@ OWN_FIELDNAMES = {
 
 
 def install():
-	"""Dipanggil dari AT Tools Settings saat User Permission Tools diaktifkan di site ini."""
+	"""Called from AT Tools Settings when User Permission Tools is enabled on this site."""
 	create_custom_fields(
 		{
 			"Employee": [
 				{
-					# Tab baru di akhir form Employee. Harus setelah field terakhir, supaya field lain tidak ikut pindah tab
+					# New tab at the end of the Employee form. Must come after the last field, so other fields don't shift into this tab
 					"fieldname": TAB_FIELDNAME,
 					"fieldtype": "Tab Break",
 					"label": "User Permission",
@@ -37,7 +37,7 @@ def install():
 					"insert_after": "user_permission_template",
 				},
 				{
-					# Daftar name User Permission yang dibuat oleh tool ini, supaya UP manual tidak ikut tersentuh
+					# List of User Permission names created by this tool, so manually-created UPs are left untouched
 					"fieldname": "user_permission_applied",
 					"fieldtype": "Small Text",
 					"label": "Applied User Permissions",
@@ -52,6 +52,6 @@ def install():
 
 
 def _last_employee_fieldname():
-	"""Field terakhir Employee selain field milik tool ini."""
+	"""Last Employee field, excluding fields owned by this tool."""
 	fieldnames = [f.fieldname for f in frappe.get_meta("Employee").fields if f.fieldname not in OWN_FIELDNAMES]
 	return fieldnames[-1]

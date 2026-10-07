@@ -53,7 +53,7 @@
   },
   {
    "depends_on": "eval:doc.value_source=='Employee Field'",
-   "description": "Fieldname di Employee, misalnya company, branch, atau department",
+   "description": "Fieldname on Employee, e.g. company, branch, or department",
    "fieldname": "employee_field",
    "fieldtype": "Data",
    "in_list_view": 1,

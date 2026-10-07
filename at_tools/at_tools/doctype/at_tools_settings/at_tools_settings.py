@@ -12,14 +12,14 @@ def generate_hooks():
 
 class ATToolsSettings(Document):
 	def validate(self):
-		# Pastikan setiap tool di registry punya baris di settings
+		# Ensure every tool in the registry has a row in settings
 		existing = {row.tool for row in self.tools}
 		for tool in TOOLS:
 			if tool not in existing:
 				self.append("tools", {"tool": tool, "enabled": 0})
 
 	def on_update(self):
-		# Jalankan installer hanya untuk tool yang baru diaktifkan
+		# Only run the installer for tools that were just enabled
 		before = self.get_doc_before_save()
 		was_enabled = {row.tool for row in before.tools if row.enabled} if before else set()
 

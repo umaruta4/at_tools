@@ -1,4 +1,4 @@
-# Hooks milik User Permission Tools. Dikumpulkan ke generated_hooks.py lewat AT Tools Settings > Generate Hooks.
+# Hooks owned by User Permission Tools. Collected into sites/.at_tools/generated_hooks.json via AT Tools Settings > Generate Hooks.
 HOOKS = {
 	"doc_events": {
 		"Employee": {
