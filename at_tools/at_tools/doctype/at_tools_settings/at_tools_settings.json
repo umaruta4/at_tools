@@ -1,0 +1,39 @@
+{
+ "actions": [],
+ "creation": "2026-10-06 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "tools"
+ ],
+ "fields": [
+  {
+   "fieldname": "tools",
+   "fieldtype": "Table",
+   "label": "Tools",
+   "options": "AT Tool Setting"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-06 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "AT Tools",
+ "name": "AT Tools Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

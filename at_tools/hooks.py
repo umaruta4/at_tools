@@ -146,6 +146,14 @@ app_license = "mit"
 # 	}
 # }
 
+# Hooks per modul dikumpulkan ke sites/.at_tools/generated_hooks.json (AT Tools Settings > Generate Hooks).
+# File ini hanya membaca hasilnya, jangan tambahkan hook di sini.
+from at_tools.tools import load_generated_hooks
+
+HOOKS = load_generated_hooks()
+
+globals().update(HOOKS)
+
 # Scheduled Tasks
 # ---------------
 
