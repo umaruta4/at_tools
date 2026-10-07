@@ -40,6 +40,7 @@ at_tools/                              # repo root (git)
 | `doc_events` handler | `<module>/doc_events/<owning_app>/<doctype>.py` |
 | Form JS | `at_tools/public/js/<module>/<target_app>/<doctype>.js` |
 | Install logic (custom fields, etc.) | `<module>/install.py`, `install()` function |
+| Whitelisted methods for a Page | `<module>/page/<page_name>/<page_name>.py`, next to that page's `.js`/`.json` (same convention as `frappe.core.page.permission_manager`) |
 
 Example: the Employee handler for ERPNext lives at `doc_events/erpnext/employee.py`; if an event for an HRMS-owned DocType comes up later, put it in `doc_events/hrms/`.
 
