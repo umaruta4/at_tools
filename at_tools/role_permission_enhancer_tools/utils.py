@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.permissions import get_all_perms
 
 from at_tools.tools import is_tool_enabled
 
@@ -72,11 +73,10 @@ def find_related_settings(doctype, linked_doctypes):
 	]
 
 
-def get_user_role_permissions(doctype, user, permlevel=0):
-	"""Effective ptype access for `user` on `doctype` at `permlevel`, merged (OR-ed) across every
-	role the user has. Document-level only - ignores if_owner and per-document User Permission
-	restrictions, since this is a baseline "can the user even use this doctype" check."""
-	roles = frappe.get_roles(user)
+def get_roles_permissions(doctype, roles, permlevel=0):
+	"""Effective ptype access for the given `roles` on `doctype` at `permlevel`, merged (OR-ed).
+	Document-level only - ignores if_owner and per-document User Permission restrictions."""
+	roles = set(roles)
 	perms = {ptype: 0 for ptype in PTYPES}
 	for perm in frappe.get_meta(doctype).permissions:
 		if perm.role in roles and (perm.permlevel or 0) == permlevel:
@@ -84,3 +84,49 @@ def get_user_role_permissions(doctype, user, permlevel=0):
 				if perm.get(ptype):
 					perms[ptype] = 1
 	return perms
+
+
+def get_user_role_permissions(doctype, user, permlevel=0):
+	"""Effective ptype access for `user` on `doctype` at `permlevel`, merged (OR-ed) across every
+	role the user has. Document-level only - ignores if_owner and per-document User Permission
+	restrictions, since this is a baseline "can the user even use this doctype" check."""
+	return get_roles_permissions(doctype, frappe.get_roles(user), permlevel)
+
+
+def get_role_profile_roles(role_profile):
+	"""Roles assigned to a Role Profile (its `roles` child table, by role name)."""
+	return frappe.get_all("Has Role", filters={"parenttype": "Role Profile", "parent": role_profile}, pluck="role")
+
+
+def get_roles_accessible_doctypes(roles, permlevel=0):
+	"""Every DocType where any of `roles` has at least Read access at `permlevel`, with ptypes
+	merged (OR-ed) across those roles. Built from frappe.permissions.get_all_perms per role
+	(standard + custom perms, 2 queries each) rather than loading every DocType's meta, since
+	this has no target doctype to narrow down - e.g. used for a Role Profile's "what can it
+	access" overview, before a specific doctype is picked."""
+	merged = {}
+	for role in set(roles):
+		for perm in get_all_perms(role):
+			if (perm.permlevel or 0) != permlevel or not perm.get("read"):
+				continue
+			row = merged.setdefault(perm.parent, {ptype: 0 for ptype in PTYPES})
+			for ptype in PTYPES:
+				if perm.get(ptype):
+					row[ptype] = 1
+
+	if not merged:
+		return []
+
+	# Custom DocPerm rows can outlive a deleted DocType; drop anything that no longer exists.
+	modules = {
+		d.name: d.module
+		for d in frappe.get_all("DocType", filters={"name": ["in", list(merged)]}, fields=["name", "module"])
+	}
+	return sorted(
+		(
+			{"doctype": name, "module": modules.get(name), **ptypes}
+			for name, ptypes in merged.items()
+			if name in modules
+		),
+		key=lambda row: (row["module"] or "", row["doctype"]),
+	)
