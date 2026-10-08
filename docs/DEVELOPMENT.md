@@ -1,6 +1,6 @@
 # AT Tools Development Guide
 
-AT Tools is a collection of internal Agile Technica tools for ERPNext/HRMS. Each tool is its own **Frappe module**, and can be enabled or disabled per site.
+AT Tools is a collection of tools for ERPNext/HRMS. Each tool is its own **Frappe module**, and can be enabled or disabled per site.
 
 ## 1. Folder Structure
 
