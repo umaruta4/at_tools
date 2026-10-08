@@ -4,41 +4,16 @@ from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docp
 from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 from frappe.permissions import add_permission, get_all_perms, setup_custom_perms
 
-from at_tools.tools import is_tool_enabled
-
-TOOL = "Role Permission Enhancer Tools"
-
-PTYPES = [
-	"select",
-	"read",
-	"write",
-	"create",
-	"delete",
-	"submit",
-	"cancel",
-	"amend",
-	"print",
-	"email",
-	"report",
-	"import",
-	"export",
-	"share",
-]
+from at_tools.role_permission_enhancer_tools.utils import PTYPES, check_access, find_linked_doctypes
 
 # Frappe only honors read/write at permlevel > 0 (field-level permissions); the other
 # ptypes only make sense at permlevel 0. Mirrors frappe.core.page.permission_manager.
 LEVEL_PTYPES = ["read", "write"]
 
 
-def _check_access():
-	frappe.only_for("System Manager")
-	if not is_tool_enabled(TOOL):
-		frappe.throw(_("{0} is not enabled in AT Tools Settings").format(TOOL))
-
-
 @frappe.whitelist()
 def get_ptypes():
-	_check_access()
+	check_access()
 	return PTYPES
 
 
@@ -50,7 +25,7 @@ def get_role_permissions(doctype=None, role=None):
 	looked up across all DocTypes for that role (then narrowed to doctype if also given).
 	When only a doctype is given, permissions are looked up for every role on it.
 	"""
-	_check_access()
+	check_access()
 
 	if role:
 		perms = get_all_perms(role)
@@ -87,23 +62,8 @@ def get_linked_doctypes(doctype, role=None):
 	When `role` is given, each item also carries that role's current level-0 permissions
 	on the linked doctype, so the caller can show (and edit) the actual current state.
 	"""
-	_check_access()
-	result = {}
-
-	def add(linked, via, kind):
-		if linked == doctype or linked in result or not frappe.db.exists("DocType", linked):
-			return
-		result[linked] = {"doctype": linked, "via": via, "kind": kind}
-
-	for field in frappe.get_meta(doctype).fields:
-		if field.fieldtype == "Link" and field.options:
-			add(field.options, field.fieldname, "Link")
-		elif field.fieldtype == "Table" and field.options:
-			for child_field in frappe.get_meta(field.options).fields:
-				if child_field.fieldtype == "Link" and child_field.options:
-					add(child_field.options, f"{field.fieldname} > {child_field.fieldname}", "Table")
-
-	items = list(result.values())
+	check_access()
+	items = find_linked_doctypes(doctype)
 	if role:
 		for item in items:
 			item["permissions"] = _get_level0_permissions(item["doctype"], role)
@@ -121,9 +81,25 @@ def _get_level0_permissions(doctype, role):
 
 
 @frappe.whitelist()
+def add_role_permission_rule(doctype, role, permlevel=0):
+	"""Add a new permission rule (defaults to read=1) for a role on a doctype at the given level.
+
+	Mirrors frappe.core.page.permission_manager.add. Lets a role/doctype/permlevel combination
+	that has no row yet show up in the table, where it can then be adjusted via Set.
+	"""
+	check_access()
+	if not frappe.db.exists("Role", role):
+		frappe.throw(_("Role {0} not found").format(role))
+	if not frappe.db.exists("DocType", doctype):
+		frappe.throw(_("DocType {0} not found").format(doctype))
+
+	add_permission(doctype, role, frappe.utils.cint(permlevel))
+
+
+@frappe.whitelist()
 def set_role_permissions(role, doctype, permissions, permlevel=0):
 	"""Fully set a role's permissions on a doctype at the given permlevel. Any ptype not sent is treated as 0."""
-	_check_access()
+	check_access()
 	_apply(role, doctype, frappe.parse_json(permissions), grant_only=False, permlevel=frappe.utils.cint(permlevel))
 
 
@@ -131,11 +107,40 @@ def set_role_permissions(role, doctype, permissions, permlevel=0):
 def set_linked_permissions(role, items):
 	"""Fully set a role's level-0 permissions on several related doctypes at once.
 	Any ptype not sent for a given doctype is treated as 0 (can revoke), same as set_role_permissions."""
-	_check_access()
+	check_access()
 	items = frappe.parse_json(items)
 	for item in items:
 		_apply(role, item["doctype"], item["permissions"], grant_only=False, permlevel=0)
 	return len(items)
+
+
+@frappe.whitelist()
+def remove_role_permission_rule(doctype, role, permlevel=0):
+	"""Remove a role's permission rule on a doctype at the given level.
+
+	Mirrors frappe.core.page.permission_manager.remove (if_owner is always 0 here, since this
+	tool doesn't expose the "Only If Creator" option).
+	"""
+	check_access()
+	if not frappe.db.exists("Role", role):
+		frappe.throw(_("Role {0} not found").format(role))
+	if not frappe.db.exists("DocType", doctype):
+		frappe.throw(_("DocType {0} not found").format(doctype))
+
+	permlevel = frappe.utils.cint(permlevel)
+	setup_custom_perms(doctype)
+
+	for name in frappe.get_all(
+		"Custom DocPerm",
+		filters={"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": 0},
+		pluck="name",
+	):
+		frappe.delete_doc("Custom DocPerm", name, ignore_permissions=True, force=True)
+
+	if not frappe.get_all("Custom DocPerm", {"parent": doctype}):
+		frappe.throw(_("There must be at least one permission rule."), title=_("Cannot Remove"))
+
+	validate_permissions_for_doctype(doctype, for_remove=True, alert=True)
 
 
 def _apply(role, doctype, values, grant_only, permlevel=0):

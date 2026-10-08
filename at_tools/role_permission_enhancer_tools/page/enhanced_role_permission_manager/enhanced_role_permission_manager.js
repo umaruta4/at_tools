@@ -1,9 +1,9 @@
-const RPE = "at_tools.role_permission_enhancer_tools.page.role_permission_enhancer_tools.role_permission_enhancer_tools";
+const RPE = "at_tools.role_permission_enhancer_tools.page.enhanced_role_permission_manager.enhanced_role_permission_manager";
 
-frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper) {
+frappe.pages["enhanced-role-permission-manager"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("Role Permission Enhancer Tools"),
+		title: __("Enhanced Role Permission Manager"),
 		single_column: true,
 	});
 
@@ -26,6 +26,64 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 	let ptypes = [];
 
 	frappe.call({ method: `${RPE}.get_ptypes`, callback: (r) => (ptypes = r.message) });
+
+	page.set_primary_action(__("Add A New Rule"), () => open_add_rule_dialog(), "add");
+
+	function open_add_rule_dialog() {
+		const current_doctype = doctype_field.get_value();
+		const current_role = role_field.get_value();
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Add New Permission Rule"),
+			fields: [
+				{
+					fieldtype: "Link",
+					fieldname: "parent",
+					label: __("Document Type"),
+					options: "DocType",
+					reqd: 1,
+					default: current_doctype,
+					read_only: Boolean(current_doctype),
+				},
+				{
+					fieldtype: "Link",
+					fieldname: "role",
+					label: __("Role"),
+					options: "Role",
+					reqd: 1,
+					default: current_role,
+					read_only: Boolean(current_role),
+				},
+				{
+					fieldtype: "Select",
+					fieldname: "permlevel",
+					label: __("Permission Level"),
+					options: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+					default: "0",
+					reqd: 1,
+					description: __(
+						"Level 0 is for document-level permissions, higher levels for field-level permissions."
+					),
+				},
+			],
+			primary_action_label: __("Add"),
+			primary_action(values) {
+				frappe.call({
+					method: `${RPE}.add_role_permission_rule`,
+					args: { doctype: values.parent, role: values.role, permlevel: values.permlevel },
+					freeze: true,
+					callback() {
+						dialog.hide();
+						frappe.show_alert({ message: __("Rule added"), indicator: "green" });
+						doctype_field.set_value(values.parent);
+						role_field.set_value(values.role);
+						load_permissions();
+					},
+				});
+			},
+		});
+		dialog.show();
+	}
 
 	function load_permissions() {
 		const doctype = doctype_field.get_value();
@@ -69,6 +127,7 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 					<td class="text-nowrap">
 						<button class="btn btn-xs btn-default btn-set" data-doctype="${frappe.utils.escape_html(row.doctype)}" data-role="${frappe.utils.escape_html(row.role)}" data-permlevel="${row.permlevel}">${__("Set")}</button>
 						${linked_button}
+						<button class="btn btn-xs btn-danger btn-remove" data-doctype="${frappe.utils.escape_html(row.doctype)}" data-role="${frappe.utils.escape_html(row.role)}" data-permlevel="${row.permlevel}">${frappe.utils.icon("x")}</button>
 					</td>
 				</tr>`;
 			})
@@ -98,6 +157,25 @@ frappe.pages["role-permission-enhancer-tools"].on_page_load = function (wrapper)
 
 		$body.find("button.btn-linked").on("click", function () {
 			open_linked_dialog($(this).data("doctype"), $(this).data("role"));
+		});
+
+		$body.find("button.btn-remove").on("click", function () {
+			const doctype = $(this).data("doctype");
+			const role = $(this).data("role");
+			const permlevel = $(this).data("permlevel");
+			frappe.call({
+				method: `${RPE}.remove_role_permission_rule`,
+				args: { doctype, role, permlevel },
+				freeze: true,
+				callback(r) {
+					if (r.exc) {
+						frappe.msgprint(__("Did not remove"));
+					} else {
+						frappe.show_alert({ message: __("Permission rule removed"), indicator: "green" });
+						load_permissions();
+					}
+				},
+			});
 		});
 	}
 

@@ -6,14 +6,14 @@
  "modified": "2026-10-06 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Role Permission Enhancer Tools",
- "name": "role-permission-enhancer-tools",
+ "name": "enhanced-role-permission-manager",
  "owner": "Administrator",
- "page_name": "Role Permission Enhancer Tools",
+ "page_name": "enhanced-role-permission-manager",
  "roles": [
   {
    "role": "System Manager"
   }
  ],
  "standard": "Yes",
- "title": "Role Permission Enhancer Tools"
+ "title": "Enhanced Role Permission Manager"
 }
