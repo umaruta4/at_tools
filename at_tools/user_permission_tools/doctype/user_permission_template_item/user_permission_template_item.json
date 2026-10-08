@@ -1,15 +1,15 @@
 {
  "actions": [],
- "creation": "2026-10-06 10:00:00.000000",
+ "creation": "2026-10-06 10:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "allow",
-  "applicable_for",
-  "apply_to_all_documents",
   "value_source",
   "fixed_value",
-  "employee_field"
+  "employee_field",
+  "apply_to_all_documents",
+  "applicable_for"
  ],
  "fields": [
   {
@@ -21,6 +21,7 @@
    "reqd": 1
   },
   {
+   "depends_on": "eval:!doc.apply_to_all_documents",
    "fieldname": "applicable_for",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -62,12 +63,13 @@
  ],
  "istable": 1,
  "links": [],
- "modified": "2026-10-06 10:00:00.000000",
+ "modified": "2026-10-08 18:45:46.085248",
  "modified_by": "Administrator",
  "module": "User Permission Tools",
  "name": "User Permission Template Item",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

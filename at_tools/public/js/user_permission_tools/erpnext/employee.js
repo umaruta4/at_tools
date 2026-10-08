@@ -1,4 +1,17 @@
 frappe.ui.form.on("Employee", {
+	setup(frm) {
+		// Same lookup core's User Permission uses for its "Applicable For": only DocTypes
+		// that actually link back to the row's "Allow" DocType (direct Link/Dynamic Link,
+		// including via a child table).
+		frm.set_query("applicable_for", "user_permission_items", (doc, cdt, cdn) => {
+			const row = locals[cdt][cdn];
+			return {
+				query: "frappe.core.doctype.user_permission.user_permission.get_applicable_for_doctype_list",
+				filters: { doctype: row.allow },
+			};
+		});
+	},
+
 	refresh(frm) {
 		frm._prev_user_permission_template = frm.doc.user_permission_template;
 	},
