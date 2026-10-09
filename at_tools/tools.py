@@ -12,7 +12,10 @@ TOOLS = {
 		"install": "at_tools.user_permission_tools.install.install",
 		"hooks": "at_tools.user_permission_tools.hooks",
 	},
-	"Role Permission Enhancer Tools": {},
+	"Role Permission Enhancer Tools": {
+		"install": "at_tools.role_permission_enhancer_tools.install.install",
+		"hooks": "at_tools.role_permission_enhancer_tools.hooks",
+	},
 }
 
 
