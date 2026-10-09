@@ -1,6 +1,8 @@
 import frappe
 from frappe import _
-from frappe.permissions import get_all_perms
+from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
+from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
+from frappe.permissions import add_permission, get_all_perms, setup_custom_perms
 
 from at_tools.tools import is_tool_enabled
 
@@ -22,6 +24,10 @@ PTYPES = [
 	"export",
 	"share",
 ]
+
+# Frappe only honors read/write at permlevel > 0 (field-level permissions); the other
+# ptypes only make sense at permlevel 0. Mirrors frappe.core.page.permission_manager.
+LEVEL_PTYPES = ["read", "write"]
 
 
 def check_access():
@@ -86,13 +92,6 @@ def get_roles_permissions(doctype, roles, permlevel=0):
 	return perms
 
 
-def get_user_role_permissions(doctype, user, permlevel=0):
-	"""Effective ptype access for `user` on `doctype` at `permlevel`, merged (OR-ed) across every
-	role the user has. Document-level only - ignores if_owner and per-document User Permission
-	restrictions, since this is a baseline "can the user even use this doctype" check."""
-	return get_roles_permissions(doctype, frappe.get_roles(user), permlevel)
-
-
 def get_role_profile_roles(role_profile):
 	"""Roles assigned to a Role Profile (its `roles` child table, by role name)."""
 	return frappe.get_all("Has Role", filters={"parenttype": "Role Profile", "parent": role_profile}, pluck="role")
@@ -130,3 +129,66 @@ def get_roles_accessible_doctypes(roles, permlevel=0):
 		),
 		key=lambda row: (row["module"] or "", row["doctype"]),
 	)
+
+
+def _ensure_custom_docperm(doctype, role, permlevel):
+	"""Copy standard DocPerm to Custom DocPerm if this doctype has none yet (same as Role
+	Permission Manager), then make sure a row exists for this role/doctype/permlevel - creating
+	one via add_permission if it doesn't. Returns (name, created)."""
+	setup_custom_perms(doctype)
+	filters = {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": 0}
+	name = frappe.db.get_value("Custom DocPerm", filters, "name")
+	if name:
+		return name, False
+	return add_permission(doctype, role, permlevel), True
+
+
+def apply_role_permissions(role, doctype, values, permlevel=0):
+	"""Fully set a role's permissions on a doctype at the given permlevel.
+	Any ptype not in `values` is treated as 0 (so this can also revoke)."""
+	if not frappe.db.exists("Role", role):
+		frappe.throw(_("Role {0} not found").format(role))
+	if not frappe.db.exists("DocType", doctype):
+		frappe.throw(_("DocType {0} not found").format(doctype))
+
+	allowed_ptypes = PTYPES if permlevel == 0 else LEVEL_PTYPES
+	values = {ptype: 1 if values.get(ptype) else 0 for ptype in allowed_ptypes}
+	name, _created = _ensure_custom_docperm(doctype, role, permlevel)
+	update_custom_docperm(name, values)
+
+	validate_permissions_for_doctype(doctype)
+	frappe.clear_cache(doctype=doctype)
+
+
+def apply_bulk_permissions(role, items):
+	"""Fully set a role's level-0 permissions on several doctypes at once.
+	items: [{"doctype": ..., "permissions": {ptype: 1, ...}}, ...]."""
+	for item in items:
+		apply_role_permissions(role, item["doctype"], item["permissions"], permlevel=0)
+	return len(items)
+
+
+def update_role_permission(role, doctype, ptype, value, permlevel=0):
+	"""Update a single ptype for a role/doctype/permlevel combo, creating the Custom DocPerm
+	row first if needed. Used by the Access Checkers' Edit Mode, where each checkbox click saves
+	immediately (same UX as Role Permission Manager), instead of batching every ptype like
+	apply_role_permissions/apply_bulk_permissions."""
+	if not frappe.db.exists("Role", role):
+		frappe.throw(_("Role {0} not found").format(role))
+	if not frappe.db.exists("DocType", doctype):
+		frappe.throw(_("DocType {0} not found").format(doctype))
+	if ptype not in PTYPES:
+		frappe.throw(_("Invalid permission type {0}").format(ptype))
+
+	allowed_ptypes = PTYPES if permlevel == 0 else LEVEL_PTYPES
+	name, created = _ensure_custom_docperm(doctype, role, permlevel)
+	if created:
+		# add_permission() always grants read and leaves every other ptype at its DocField
+		# default (which isn't necessarily 0) - zero everything except what was just asked for,
+		# so a brand-new row never silently grants more than the one checkbox that was clicked.
+		update_custom_docperm(name, {p: 1 if p == ptype and value else 0 for p in allowed_ptypes})
+	else:
+		update_custom_docperm(name, {ptype: 1 if value else 0})
+
+	validate_permissions_for_doctype(doctype)
+	frappe.clear_cache(doctype=doctype)
