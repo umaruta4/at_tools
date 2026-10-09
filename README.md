@@ -6,10 +6,10 @@ AT Tools is a collection of tools for ERPNext/HRMS. Each tool is its own Frappe 
 
 #### User Permission Tools
 
-Automates `User Permission` records for Employees instead of creating them by hand one by one.
+Automates `User Permission` records for Users instead of creating them by hand one by one.
 
-- **User Permission Template**: define a reusable set of rules — which DocType to restrict (`Allow`), where the value comes from (a fixed value, or copied live from an Employee field such as Department, Branch, or Cost Center), whether it applies to all document types or only to specific ones (filtered to DocTypes that actually link to the `Allow` DocType, the same way core's `User Permission` does it).
-- Assign a template to an Employee via the **User Permission Template** field on the Employee form. On every save, the Employee's `User Permission` records are reconciled to match the template — created, kept, or removed as needed — while any `User Permission` created manually (or by ERPNext itself) is left untouched.
+- **User Permission Template**: define a reusable set of rules — which DocType to restrict (`Allow`), where the value comes from (a fixed value, or copied live from a field on the User's linked Employee, such as Department, Branch, or Cost Center), whether it applies to all document types or only to specific ones (filtered to DocTypes that actually link to the `Allow` DocType, the same way core's `User Permission` does it).
+- **User Permission Setting**: assign a template (or define rows directly) for a specific **User**. On every save, that User's `User Permission` records are reconciled to match it — created, kept, or removed as needed — while any `User Permission` created manually (or by ERPNext itself) is left untouched. A row whose value comes from an Employee field requires the User to actually have a linked Employee; saving with no such Employee throws an error instead of silently skipping the row.
 
 #### Role Permission Enhancer Tools
 

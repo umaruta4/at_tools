@@ -16,25 +16,31 @@ TEMPLATE_ITEM_FIELDS = [
 
 @frappe.whitelist()
 def get_template_items(template):
-	"""Used by the Employee JS to copy template rows into the Employee table."""
+	"""Used by the User Permission Setting JS to copy template rows into its items table."""
 	frappe.has_permission("User Permission Template", "read", throw=True)
 	doc = frappe.get_doc("User Permission Template", template)
 	return [{field: row.get(field) for field in TEMPLATE_ITEM_FIELDS} for row in doc.items]
 
 
-def sync_employee_user_permissions(doc):
-	"""Reconcile the user's User Permission records with the Employee's User Permissions table."""
-	if not doc.user_id:
-		return
+def delete_applied_user_permissions(doc):
+	"""Delete every User Permission this tool created and is tracking for this User Permission
+	Setting. Called from on_trash, since once the Setting is deleted there's nothing left to
+	reconcile `applied` against - unlike a normal save, every tracked User Permission must go."""
+	for name in json.loads(doc.get("applied") or "[]"):
+		if frappe.db.exists("User Permission", name):
+			frappe.delete_doc("User Permission", name, ignore_permissions=True, force=True)
 
-	desired = get_desired_permissions(doc.get("user_permission_items") or [], doc)
+
+def sync_user_permissions(doc):
+	"""Reconcile the User's User Permission records with this User Permission Setting's items table."""
+	desired = get_desired_permissions(doc.get("items") or [], doc.user)
 	desired_keys = {permission_key(**perm) for perm in desired}
 
-	applied = json.loads(doc.get("user_permission_applied") or "[]")
+	applied = json.loads(doc.get("applied") or "[]")
 	existing = (
 		frappe.get_all(
 			"User Permission",
-			filters={"user": doc.user_id, "name": ["in", applied]},
+			filters={"user": doc.user, "name": ["in", applied]},
 			fields=["name", "allow", "for_value", "applicable_for", "apply_to_all_doctypes"],
 		)
 		if applied
@@ -53,7 +59,7 @@ def sync_employee_user_permissions(doc):
 	# UPs that already exist from other sources (e.g. ERPNext or manual) are never recreated or managed by this tool
 	current_user_permissions = frappe.get_all(
 		"User Permission",
-		filters={"user": doc.user_id},
+		filters={"user": doc.user},
 		fields=["allow", "for_value", "applicable_for", "apply_to_all_doctypes"],
 	)
 	current_keys = {
@@ -66,22 +72,33 @@ def sync_employee_user_permissions(doc):
 		if key in kept or key in current_keys:
 			continue
 
-		up = frappe.get_doc({"doctype": "User Permission", "user": doc.user_id, **perm}).insert(
+		up = frappe.get_doc({"doctype": "User Permission", "user": doc.user, **perm}).insert(
 			ignore_permissions=True, ignore_if_duplicate=True
 		)
 		kept[key] = up.name
 
 	# update_modified=False so the next save from the form doesn't hit a TimestampMismatchError
 	applied_value = json.dumps(sorted(kept.values()))
-	doc.user_permission_applied = applied_value
-	frappe.db.set_value("Employee", doc.name, "user_permission_applied", applied_value, update_modified=False)
+	doc.applied = applied_value
+	frappe.db.set_value(doc.doctype, doc.name, "applied", applied_value, update_modified=False)
 
 
-def get_desired_permissions(rows, employee):
+def get_desired_permissions(rows, user):
+	"""Resolve each row's value: "Fixed Value" rows use fixed_value directly; "Employee Field"
+	rows look up that field on the Employee linked to `user` (via user_id) - fetched lazily, once,
+	only if a row actually needs it. UserPermissionSetting.validate() already guarantees such an
+	Employee exists whenever any row uses "Employee Field", but a specific field on it can still
+	be blank, in which case that row is skipped (not an error, same as a blank Fixed Value)."""
 	desired = []
+	employee = None
+	employee_loaded = False
+
 	for row in rows:
 		if row.value_source == "Employee Field":
-			value = employee.get(row.employee_field)
+			if not employee_loaded:
+				employee = frappe.db.get_value("Employee", {"user_id": user}, "*", as_dict=True)
+				employee_loaded = True
+			value = (employee or {}).get(row.employee_field)
 		else:
 			value = row.fixed_value
 

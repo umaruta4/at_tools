@@ -93,17 +93,33 @@ Use it at **every entry point** of a tool, because hooks registered in the gener
 
 ### Usage example
 
+For a DocType you own (like User Permission Setting), just check it directly in that DocType's own controller - no `doc_events` hook needed, since you already have the file:
+
 ```python
-# doc_events/erpnext/employee.py
+# user_permission_tools/doctype/user_permission_setting/user_permission_setting.py
+from at_tools.user_permission_tools.utils import is_enabled, sync_user_permissions
+
+
+class UserPermissionSetting(Document):
+	def on_update(self):
+		if not is_enabled():
+			return
+
+		sync_user_permissions(self)
+```
+
+For a DocType owned by another app (like Employee), use a `doc_events` hook instead, since you don't own that file:
+
+```python
+# <module>/doc_events/<app>/<doctype>.py
 from at_tools.tools import is_tool_enabled
-from at_tools.user_permission_tools.utils import sync_employee_user_permissions
 
 
 def on_update(doc, method=None):
-	if not is_tool_enabled("User Permission Tools"):
+	if not is_tool_enabled("<Tool Name>"):
 		return
 
-	sync_employee_user_permissions(doc)
+	...
 ```
 
 `user_permission_tools/utils.py` has an `is_enabled()` wrapper that already calls `is_tool_enabled("User Permission Tools")`. Use this wrapper when you're inside that same tool.
@@ -173,7 +189,7 @@ Consequence: **a new deployment (fresh clone / new server) must click Generate H
 - **Install doesn't re-run automatically.** `install()` only runs when a tool is first enabled. If you add a field to `install()` for a site where the tool is already active, disable and re-enable the tool, or call `install()` manually.
 - **`sites/.at_tools/generated_hooks.json` doesn't come along with a clone/deploy.** A new deployment (or new site) must click **Generate Hooks** once after enabling the tool, before hooks will work.
 - **Generate reads the tools enabled on the site where the button was clicked.** This file is used bench-wide, so if several sites have different settings, the result may not match for other sites. Handlers still check `is_tool_enabled`, so a disabled tool won't run.
-- **An error in a `doc_events` handler cancels the document's save.** The User Permission sync handler runs inside the Employee save transaction, so an error there will cancel the save. Validate input at the template level (`validate`) as much as possible, not during sync.
+- **An error in `on_update`/a `doc_events` handler cancels the document's save.** The User Permission sync handler runs inside User Permission Setting's own save transaction, so an error there will cancel that save. Validate input at `validate()` as much as possible, not during sync - e.g. User Permission Setting checks upfront that the User has a linked Employee whenever any row uses "Employee Field", instead of letting sync fail partway through.
 - **`modified` must not change during sync.** Use `frappe.db.set_value(..., update_modified=False)` in handlers that write to the document currently being saved, so the next save from the form doesn't hit a `TimestampMismatchError`.
 - **The `name` field (Employee ID) can only be used with Allow = Employee** in User Permission Template.
 - **ERPNext automatically creates a User Permission** for an Employee with a `user_id`: `Company = <company>` and `Employee = <self>`. The sync tool never recreates existing UPs, and never deletes them.
