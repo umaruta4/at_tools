@@ -4,7 +4,7 @@ authors = [
     { name = "umar.s@agiletechnica.com", email = "support@agiletechnica.com"}
 ]
 description = "AT Tools"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
