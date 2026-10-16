@@ -148,7 +148,8 @@ frappe.provide("permission_dependency_manager");
 				<div class="flex justify-between align-center" style="gap: 12px; margin-bottom: 12px;">
 					<div class="text-muted small">
 						${__("Role")}: <b>${esc(__(this.role))}</b> ·
-						${__("{0} detected or configured, {1} selected", [this.rows.length, selected])}<br>
+						${__("{0} detected or configured, {1} selected", [this.rows.length, selected])} ·
+						<span class="pdm-progress"></span><br>
 						${__("Detected dependencies are recommendations. Only selected rows are granted, and existing permissions are never removed.")}
 					</div>
 					<div class="flex align-center" style="gap: 12px; white-space: nowrap;">
@@ -185,7 +186,23 @@ frappe.provide("permission_dependency_manager");
 			this.render_rows();
 		}
 
+		render_progress() {
+			// Only selected (enabled) dependencies count toward the total.
+			const active = this.rows.filter((row) => row.enabled);
+			const met = active.filter((row) => this.status_of(row) === "satisfied").length;
+			const color = !active.length ? "gray" : met === active.length ? "green" : "orange";
+			this.$body
+				.find(".pdm-progress")
+				.html(
+					`<span class="indicator-pill ${color}">${__("{0} / {1} dependencies satisfied", [
+						met,
+						active.length,
+					])}</span>`
+				);
+		}
+
 		render_rows() {
+			this.render_progress();
 			const rows = this.visible_rows();
 			const $tbody = this.$body.find(".pdm-rows").empty();
 			if (!rows.length) {
