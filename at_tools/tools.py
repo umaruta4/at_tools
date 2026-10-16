@@ -16,6 +16,9 @@ TOOLS = {
 		"install": "at_tools.role_permission_enhancer_tools.install.install",
 		"hooks": "at_tools.role_permission_enhancer_tools.hooks",
 	},
+	"Permission Dependency Manager": {
+		"hooks": "at_tools.permission_dependency_manager.hooks",
+	},
 }
 
 

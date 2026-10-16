@@ -1,0 +1,187 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 20:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "role",
+  "parent_doctype",
+  "dependency_doctype",
+  "column_break_main",
+  "enabled",
+  "source_type",
+  "dependency_type",
+  "source_doctype",
+  "source_field",
+  "permissions_section",
+  "perm_read",
+  "perm_select",
+  "perm_create",
+  "perm_write",
+  "column_break_perms",
+  "perm_delete",
+  "perm_submit",
+  "perm_cancel",
+  "perm_amend",
+  "reason_section",
+  "reason"
+ ],
+ "fields": [
+  {
+   "fieldname": "role",
+   "fieldtype": "Link",
+   "options": "Role",
+   "label": "Role",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "parent_doctype",
+   "fieldtype": "Link",
+   "options": "DocType",
+   "label": "Parent Doctype",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "dependency_doctype",
+   "fieldtype": "Link",
+   "options": "DocType",
+   "label": "Dependency Doctype",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "source_type",
+   "fieldtype": "Select",
+   "options": "Detected\nManual",
+   "label": "Source Type",
+   "default": "Manual"
+  },
+  {
+   "fieldname": "dependency_type",
+   "fieldtype": "Select",
+   "options": "Direct Link\nChild Table Link\nIndirect\nManual",
+   "label": "Dependency Type",
+   "default": "Manual"
+  },
+  {
+   "fieldname": "source_doctype",
+   "fieldtype": "Link",
+   "options": "DocType",
+   "label": "Source Doctype"
+  },
+  {
+   "fieldname": "source_field",
+   "fieldtype": "Data",
+   "label": "Source Field"
+  },
+  {
+   "fieldname": "permissions_section",
+   "fieldtype": "Section Break",
+   "label": "Permissions to Grant"
+  },
+  {
+   "fieldname": "perm_read",
+   "fieldtype": "Check",
+   "label": "Read",
+   "default": "0"
+  },
+  {
+   "fieldname": "perm_select",
+   "fieldtype": "Check",
+   "label": "Select",
+   "default": "0"
+  },
+  {
+   "fieldname": "perm_create",
+   "fieldtype": "Check",
+   "label": "Create",
+   "default": "0"
+  },
+  {
+   "fieldname": "perm_write",
+   "fieldtype": "Check",
+   "label": "Write",
+   "default": "0"
+  },
+  {
+   "fieldname": "column_break_perms",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "perm_delete",
+   "fieldtype": "Check",
+   "label": "Delete",
+   "default": "0"
+  },
+  {
+   "fieldname": "perm_submit",
+   "fieldtype": "Check",
+   "label": "Submit",
+   "default": "0"
+  },
+  {
+   "fieldname": "perm_cancel",
+   "fieldtype": "Check",
+   "label": "Cancel",
+   "default": "0"
+  },
+  {
+   "fieldname": "perm_amend",
+   "fieldtype": "Check",
+   "label": "Amend",
+   "default": "0"
+  },
+  {
+   "fieldname": "reason_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "reason",
+   "fieldtype": "Small Text",
+   "label": "Reason"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-08 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Permission Dependency Manager",
+ "name": "Permission Dependency",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "hash",
+ "naming_rule": "Random",
+ "title_field": "dependency_doctype",
+ "description": "Configuration layer only. Native DocPerm stays the source of truth."
+}

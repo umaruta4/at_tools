@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2026-10-08 20:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "recommendation_section",
+  "master_permissions",
+  "transaction_permissions",
+  "unknown_permissions",
+  "detection_section",
+  "ignored_doctypes"
+ ],
+ "fields": [
+  {
+   "fieldname": "recommendation_section",
+   "fieldtype": "Section Break",
+   "label": "Recommended Permissions",
+   "description": "Comma separated permission types (read, select, create, write, delete, submit, cancel, amend). Recommendations are never applied automatically."
+  },
+  {
+   "fieldname": "master_permissions",
+   "fieldtype": "Data",
+   "label": "Master Doctypes",
+   "default": "read, select"
+  },
+  {
+   "fieldname": "transaction_permissions",
+   "fieldtype": "Data",
+   "label": "Transaction (Submittable) Doctypes",
+   "default": "read"
+  },
+  {
+   "fieldname": "unknown_permissions",
+   "fieldtype": "Data",
+   "label": "Unknown Doctypes",
+   "default": "read"
+  },
+  {
+   "fieldname": "detection_section",
+   "fieldtype": "Section Break",
+   "label": "Detection"
+  },
+  {
+   "fieldname": "ignored_doctypes",
+   "fieldtype": "Small Text",
+   "label": "Ignored Doctypes",
+   "description": "One doctype per line. These are never suggested as a dependency."
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-08 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Permission Dependency Manager",
+ "name": "Permission Dependency Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "issingle": 1
+}
