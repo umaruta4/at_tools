@@ -11,8 +11,15 @@ def generate_hooks():
 
 
 class ATToolsSettings(Document):
+	def onload(self):
+		# Show every registered tool even before the first save
+		self.sync_tools()
+
 	def validate(self):
-		# Ensure every tool in the registry has a row in settings
+		self.sync_tools()
+
+	def sync_tools(self):
+		"""Ensure every tool in the registry has a row in settings."""
 		existing = {row.tool for row in self.tools}
 		for tool in TOOLS:
 			if tool not in existing:
