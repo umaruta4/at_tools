@@ -2,7 +2,7 @@
 
 from dataclasses import asdict, dataclass, field
 
-from at_tools.constants import DIRECT_LINK
+from at_tools.permission_dependency_manager.constants import DIRECT_LINK
 
 
 @dataclass(frozen=True)

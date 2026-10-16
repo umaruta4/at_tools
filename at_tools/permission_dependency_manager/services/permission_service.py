@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 
-from at_tools.constants import (
+from at_tools.permission_dependency_manager.constants import (
 	ADMIN_ROLE,
 	AUTOMATIC_ROLES,
 	NOT_ALLOWED_DOCTYPES,
@@ -20,7 +20,7 @@ class PermissionService:
 	@property
 	def repository(self):
 		if self._repository is None:
-			from at_tools.repositories.permission_repository import (
+			from at_tools.permission_dependency_manager.repositories.permission_repository import (
 				PermissionRepository,
 			)
 
@@ -30,7 +30,7 @@ class PermissionService:
 	@property
 	def metadata_repository(self):
 		if self._metadata_repository is None:
-			from at_tools.repositories.metadata_repository import (
+			from at_tools.permission_dependency_manager.repositories.metadata_repository import (
 				MetadataRepository,
 			)
 

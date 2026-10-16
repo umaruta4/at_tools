@@ -1,6 +1,6 @@
 import frappe
 
-from at_tools.constants import PERMISSION_TYPES
+from at_tools.permission_dependency_manager.constants import PERMISSION_TYPES
 
 CUSTOM_DOCPERM = "Custom DocPerm"
 DOCPERM = "DocPerm"

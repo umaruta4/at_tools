@@ -2,7 +2,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from at_tools.constants import PERMISSION_TYPES
+from at_tools.permission_dependency_manager.constants import PERMISSION_TYPES
 
 PERMISSION_FIELDS = ("master_permissions", "transaction_permissions", "unknown_permissions")
 

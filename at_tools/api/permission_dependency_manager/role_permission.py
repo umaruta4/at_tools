@@ -3,8 +3,8 @@
 import frappe
 from frappe import _
 
-from at_tools.constants import MANAGER_ROLE
-from at_tools.services.dependency_service import PermissionDependencyService
+from at_tools.permission_dependency_manager.constants import MANAGER_ROLE
+from at_tools.permission_dependency_manager.services.dependency_service import PermissionDependencyService
 
 
 def get_service() -> PermissionDependencyService:

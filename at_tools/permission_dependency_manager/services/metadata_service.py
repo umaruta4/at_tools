@@ -1,9 +1,9 @@
-from at_tools.constants import (
+from at_tools.permission_dependency_manager.constants import (
 	CHILD_TABLE_LINK,
 	DIRECT_LINK,
 	TABLE_FIELDTYPES,
 )
-from at_tools.dto import DependencySource, DetectedDependency
+from at_tools.permission_dependency_manager.dto import DependencySource, DetectedDependency
 
 
 class DependencyAnalyzer:
@@ -19,7 +19,7 @@ class DependencyAnalyzer:
 	@property
 	def metadata_repository(self):
 		if self._metadata_repository is None:
-			from at_tools.repositories.metadata_repository import (
+			from at_tools.permission_dependency_manager.repositories.metadata_repository import (
 				MetadataRepository,
 			)
 

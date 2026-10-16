@@ -2,7 +2,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from at_tools.constants import (
+from at_tools.permission_dependency_manager.constants import (
 	DEPENDENCY_DOCTYPE,
 	MANUAL,
 	SOURCE_MANUAL,

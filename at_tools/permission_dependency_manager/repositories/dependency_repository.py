@@ -1,6 +1,6 @@
 import frappe
 
-from at_tools.constants import (
+from at_tools.permission_dependency_manager.constants import (
 	CLASS_MASTER,
 	CLASS_TRANSACTION,
 	CLASS_UNKNOWN,

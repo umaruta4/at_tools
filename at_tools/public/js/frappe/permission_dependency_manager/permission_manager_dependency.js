@@ -9,7 +9,7 @@
 frappe.provide("permission_dependency_manager");
 
 (function (pdm) {
-	const API = "at_tools.api.role_permission.";
+	const API = "at_tools.api.permission_dependency_manager.role_permission.";
 	const PTYPES = ["read", "select", "create", "write", "delete", "submit", "cancel", "amend"];
 	const STATUS = {
 		satisfied: { label: __("Satisfied"), color: "green" },

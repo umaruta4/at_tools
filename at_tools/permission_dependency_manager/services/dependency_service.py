@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 
-from at_tools.constants import (
+from at_tools.permission_dependency_manager.constants import (
 	CHILD_TABLE_LINK,
 	CLASS_MASTER,
 	CLASS_TRANSACTION,
@@ -18,7 +18,7 @@ from at_tools.constants import (
 	STATUS_PARTIAL,
 	STATUS_SATISFIED,
 )
-from at_tools.services.permission_service import PermissionService
+from at_tools.permission_dependency_manager.services.permission_service import PermissionService
 
 
 class PermissionDependencyService:
@@ -41,7 +41,7 @@ class PermissionDependencyService:
 	@property
 	def metadata_repository(self):
 		if self._metadata_repository is None:
-			from at_tools.repositories.metadata_repository import (
+			from at_tools.permission_dependency_manager.repositories.metadata_repository import (
 				MetadataRepository,
 			)
 
@@ -51,7 +51,7 @@ class PermissionDependencyService:
 	@property
 	def analyzer(self):
 		if self._analyzer is None:
-			from at_tools.services.metadata_service import DependencyAnalyzer
+			from at_tools.permission_dependency_manager.services.metadata_service import DependencyAnalyzer
 
 			self._analyzer = DependencyAnalyzer(self.metadata_repository)
 		return self._analyzer
@@ -59,7 +59,7 @@ class PermissionDependencyService:
 	@property
 	def repository(self):
 		if self._repository is None:
-			from at_tools.repositories.dependency_repository import (
+			from at_tools.permission_dependency_manager.repositories.dependency_repository import (
 				DependencyRepository,
 			)
 
